@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora 3D – Pahl Studio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0d0d0f;
+      color: #e8e8e8;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .top-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #00897b, #26c6b0);
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 28px 16px 72px;
+    }
+
+    .back-link {
+      font-size: 0.8rem;
+      color: #00897b;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #f0f0f0;
+      letter-spacing: -0.02em;
+    }
+    .page-header p {
+      font-size: 0.82rem;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    .card {
+      background: #18181b;
+      border: 1px solid #2a2a2e;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .icon-teal   { background: #0d2420; }
+    .icon-purple { background: #1a0d2a; }
+    .icon-blue   { background: #0d1a2a; }
+    .icon-green  { background: #0d2015; }
+
+    .card-title { font-size: 1rem; font-weight: 700; color: #f0f0f0; }
+    .card-sub   { font-size: 0.74rem; color: #555; margin-top: 2px; }
+
+    label {
+      font-size: 0.8rem;
+      color: #777;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: #0d0d0f;
+      border: 1px solid #2a2a2e;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 1rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input:focus { border-color: #00897b; }
+
+    .input-wrap { position: relative; }
+    .input-wrap input { padding-right: 56px; }
+    .input-suffix {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.78rem;
+      color: #555;
+      pointer-events: none;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .hint {
+      font-size: 0.72rem;
+      color: #555;
+      margin-top: 7px;
+    }
+
+    /* Printer buttons */
+    .printer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .sel-btn {
+      background: #0d0d0f;
+      border: 1px solid #2a2a2e;
+      border-radius: 10px;
+      color: #aaa;
+      padding: 12px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .sel-btn:hover { border-color: #00897b40; color: #ccc; }
+    .sel-btn.active {
+      border-color: #00897b;
+      background: #0d2420;
+      color: #f0f0f0;
+    }
+
+    .btn-name { font-size: 0.88rem; font-weight: 700; display: block; }
+    .btn-sub  { font-size: 0.7rem; color: #555; display: block; margin-top: 2px; }
+    .sel-btn.active .btn-sub { color: #00897b; }
+
+    /* Filament buttons */
+    .fil-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .fil-btn {
+      background: #0d0d0f;
+      border: 1px solid #2a2a2e;
+      border-radius: 10px;
+      color: #aaa;
+      padding: 10px 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .fil-btn:hover { border-color: #00897b40; color: #ccc; }
+    .fil-btn.active { border-color: #00897b; background: #0d2420; color: #f0f0f0; }
+    .fil-name { font-size: 0.88rem; font-weight: 700; display: block; }
+    .fil-price-tag { font-size: 0.65rem; color: #555; display: block; margin-top: 1px; }
+    .fil-btn.active .fil-price-tag { color: #00897b; }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .price-row-label { font-size: 0.78rem; color: #666; }
+    .price-row-val   { font-size: 0.85rem; font-weight: 600; color: #00897b; }
+
+    /* Results */
+    .results-card {
+      background: #18181b;
+      border: 1px solid #2a2a2e;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #444;
+      margin-bottom: 14px;
+    }
+
+    .total-block {
+      text-align: center;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #222;
+    }
+    .total-label { font-size: 0.8rem; color: #555; margin-bottom: 4px; }
+    .total-value {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #00897b;
+      letter-spacing: -0.03em;
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .bd-item {
+      background: #0d0d0f;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .bd-label { font-size: 0.7rem; color: #555; margin-bottom: 3px; }
+    .bd-value { font-size: 0.92rem; font-weight: 700; color: #e8e8e8; }
+
+    .margin-rows { border-top: 1px solid #222; }
+    .margin-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid #1e1e22;
+    }
+    .margin-row:last-child { border-bottom: none; }
+    .margin-left { display: flex; align-items: center; gap: 10px; }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    .badge-50  { background: #122512; color: #4caf50; }
+    .badge-70  { background: #1a2510; color: #8bc34a; }
+    .badge-100 { background: #2a1800; color: #ff9800; }
+
+    .margin-desc { font-size: 0.78rem; color: #555; }
+    .margin-price { font-size: 1.08rem; font-weight: 700; color: #f0f0f0; }
+
+    footer {
+      text-align: center;
+      padding: 36px 0 10px;
+      font-size: 0.78rem;
+      color: #444;
+    }
+    footer a { color: #444; text-decoration: none; }
+    footer a:hover { color: #00897b; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+
+<div class="container">
+
+  <a class="back-link" href="../">← Voltar</a>
+
+  <div class="page-header">
+    <h1>Calculadora 3D</h1>
+    <p>Precificação para impressão 3D · Pahl Studio</p>
+  </div>
+
+  <!-- Impressora -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-teal">🖨️</div>
+      <div>
+        <div class="card-title">Impressora</div>
+        <div class="card-sub">Consumo médio real durante impressão PLA</div>
+      </div>
+    </div>
+    <div class="printer-grid">
+      <button class="sel-btn active" onclick="selectPrinter(this, 95)">
+        <span class="btn-name">Bambu A1</span>
+        <span class="btn-sub">~95W médio</span>
+      </button>
+      <button class="sel-btn" onclick="selectPrinter(this, 350)">
+        <span class="btn-name">Bambu P2S Combo</span>
+        <span class="btn-sub">~350W estimado</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filamento -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-purple">🧵</div>
+      <div>
+        <div class="card-title">Filamento</div>
+        <div class="card-sub">Tipo e quantidade usada</div>
+      </div>
+    </div>
+    <div class="fil-grid">
+      <button class="fil-btn active" onclick="selectFil(this, 110)">
+        <span class="fil-name">PLA</span>
+        <span class="fil-price-tag">R$110/kg</span>
+      </button>
+      <button class="fil-btn" onclick="selectFil(this, 179)">
+        <span class="fil-name">PETG</span>
+        <span class="fil-price-tag">R$179/kg</span>
+      </button>
+      <button class="fil-btn" onclick="selectFil(this, 149)">
+        <span class="fil-name">ABS</span>
+        <span class="fil-price-tag">R$149/kg</span>
+      </button>
+      <button class="fil-btn" onclick="selectFil(this, 189)">
+        <span class="fil-name">ASA</span>
+        <span class="fil-price-tag">R$189/kg</span>
+      </button>
+      <button class="fil-btn" onclick="selectFil(this, 199)">
+        <span class="fil-name">TPU</span>
+        <span class="fil-price-tag">R$199/kg</span>
+      </button>
+      <button class="fil-btn" onclick="selectFil(this, -1)">
+        <span class="fil-name">Outro</span>
+        <span class="fil-price-tag">manual</span>
+      </button>
+    </div>
+
+    <div id="custom-price-wrap" style="display:none; margin-bottom:14px;">
+      <label>Preço por kg (R$)</label>
+      <div class="input-wrap">
+        <input type="number" id="custom-price" placeholder="0,00" min="0" step="0.01" oninput="calc()">
+        <span class="input-suffix">R$/kg</span>
+      </div>
+    </div>
+
+    <div class="price-row">
+      <span class="price-row-label">Preço por kg selecionado</span>
+      <span class="price-row-val" id="fil-kg-display">R$ 110,00</span>
+    </div>
+
+    <label>Peso usado (g)</label>
+    <div class="input-wrap">
+      <input type="number" id="fil-grams" placeholder="0" min="0" step="0.1" oninput="calc()">
+      <span class="input-suffix">g</span>
+    </div>
+    <p class="hint" id="fil-gram-hint">Custo por grama: R$ 0,11</p>
+  </div>
+
+  <!-- Tempo de impressão -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-blue">⏱️</div>
+      <div>
+        <div class="card-title">Tempo de Impressão</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Horas</label>
+        <div class="input-wrap">
+          <input type="number" id="time-h" placeholder="0" min="0" step="1" oninput="calc()">
+          <span class="input-suffix">h</span>
+        </div>
+      </div>
+      <div>
+        <label>Minutos</label>
+        <div class="input-wrap">
+          <input type="number" id="time-m" placeholder="0" min="0" max="59" step="1" oninput="calc()">
+          <span class="input-suffix">min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarifa de energia -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-teal">⚡</div>
+      <div>
+        <div class="card-title">Tarifa de Energia</div>
+      </div>
+    </div>
+    <label>Custo por kWh (R$)</label>
+    <div class="input-wrap">
+      <input type="number" id="tariff" value="0.9" min="0" step="0.01" oninput="calc()">
+      <span class="input-suffix">R$/kWh</span>
+    </div>
+    <p class="hint">Média Brasil ~R$ 0,90/kWh</p>
+  </div>
+
+  <!-- Embalagem -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-green">📦</div>
+      <div>
+        <div class="card-title">Embalagem</div>
+        <div class="card-sub">Caixa + seda + carimbo + tinta</div>
+      </div>
+    </div>
+    <label>Custo fixo por pedido (R$)</label>
+    <div class="input-wrap">
+      <input type="number" id="packaging" placeholder="0,00" min="0" step="0.01" oninput="calc()">
+      <span class="input-suffix">R$</span>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div class="results-card">
+    <div class="section-label">Resultado</div>
+
+    <div class="total-block">
+      <div class="total-label">Custo total de produção</div>
+      <div class="total-value" id="total-cost">R$ 0,00</div>
+    </div>
+
+    <div class="breakdown-grid">
+      <div class="bd-item">
+        <div class="bd-label">Energia</div>
+        <div class="bd-value" id="bd-energy">R$ 0,00</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">Material</div>
+        <div class="bd-value" id="bd-material">R$ 0,00</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">Embalagem</div>
+        <div class="bd-value" id="bd-packaging">R$ 0,00</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">Total</div>
+        <div class="bd-value" id="bd-total">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:4px;">Preço de venda</div>
+    <div class="margin-rows">
+      <div class="margin-row">
+        <div class="margin-left">
+          <span class="badge badge-50">+50%</span>
+          <span class="margin-desc">lucro</span>
+        </div>
+        <span class="margin-price" id="price-50">R$ 0,00</span>
+      </div>
+      <div class="margin-row">
+        <div class="margin-left">
+          <span class="badge badge-70">+70%</span>
+          <span class="margin-desc">lucro</span>
+        </div>
+        <span class="margin-price" id="price-70">R$ 0,00</span>
+      </div>
+      <div class="margin-row">
+        <div class="margin-left">
+          <span class="badge badge-100">+100%</span>
+          <span class="margin-desc">lucro</span>
+        </div>
+        <span class="margin-price" id="price-100">R$ 0,00</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="../">← Eduardo Pahl</a>
+  </footer>
+
+</div>
+
+<script>
+  let watts = 95;
+  let pricePerKg = 110;
+  let customFil = false;
+
+  function selectPrinter(btn, w) {
+    document.querySelectorAll('.printer-grid .sel-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    watts = w;
+    calc();
+  }
+
+  function selectFil(btn, price) {
+    document.querySelectorAll('.fil-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    customFil = price === -1;
+    document.getElementById('custom-price-wrap').style.display = customFil ? 'block' : 'none';
+    if (!customFil) {
+      pricePerKg = price;
+      document.getElementById('fil-kg-display').textContent = fmt(price);
+    }
+    calc();
+  }
+
+  function fmt(val) {
+    return 'R$ ' + val.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function calc() {
+    if (customFil) {
+      pricePerKg = parseFloat(document.getElementById('custom-price').value) || 0;
+      document.getElementById('fil-kg-display').textContent = fmt(pricePerKg);
+    }
+
+    const grams   = parseFloat(document.getElementById('fil-grams').value) || 0;
+    const hours   = parseFloat(document.getElementById('time-h').value) || 0;
+    const mins    = parseFloat(document.getElementById('time-m').value) || 0;
+    const tariff  = parseFloat(document.getElementById('tariff').value) || 0;
+    const pkg     = parseFloat(document.getElementById('packaging').value) || 0;
+
+    const totalHours  = hours + mins / 60;
+    const kWh         = (watts * totalHours) / 1000;
+    const energyCost  = kWh * tariff;
+    const matCost     = (grams / 1000) * pricePerKg;
+    const total       = energyCost + matCost + pkg;
+
+    document.getElementById('fil-gram-hint').textContent =
+      'Custo por grama: ' + fmt(pricePerKg / 1000);
+
+    document.getElementById('bd-energy').textContent    = fmt(energyCost);
+    document.getElementById('bd-material').textContent  = fmt(matCost);
+    document.getElementById('bd-packaging').textContent = fmt(pkg);
+    document.getElementById('bd-total').textContent     = fmt(total);
+    document.getElementById('total-cost').textContent   = fmt(total);
+
+    document.getElementById('price-50').textContent  = fmt(total * 1.5);
+    document.getElementById('price-70').textContent  = fmt(total * 1.7);
+    document.getElementById('price-100').textContent = fmt(total * 2.0);
+  }
+
+  calc();
+</script>
+
+</body>
+</html>
