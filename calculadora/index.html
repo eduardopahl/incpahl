@@ -229,30 +229,50 @@
     .bd-label { font-size: 0.7rem; color: #555; margin-bottom: 3px; }
     .bd-value { font-size: 0.92rem; font-weight: 700; color: #e8e8e8; }
 
-    .margin-rows { border-top: 1px solid #222; }
-    .margin-row {
+    .margin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .margin-btn {
+      background: #0d0d0f;
+      border: 1.5px solid #2a2a2e;
+      border-radius: 10px;
+      color: #aaa;
+      padding: 11px 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 0.92rem;
+      font-weight: 700;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .margin-btn:hover { border-color: #00897b40; color: #ccc; }
+    .margin-btn.active { border-color: #00897b; background: #0d2420; color: #f0f0f0; }
+
+    .custom-margin-wrap { margin-bottom: 14px; }
+
+    .mkt-placeholder {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #444;
+      padding: 18px 0 6px;
+    }
+
+    .mkt-rows { border-top: 1px solid #222; }
+    .mkt-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 0;
+      padding: 13px 0;
       border-bottom: 1px solid #1e1e22;
     }
-    .margin-row:last-child { border-bottom: none; }
-    .margin-left { display: flex; align-items: center; gap: 10px; }
-
-    .badge {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 999px;
-      letter-spacing: 0.04em;
-    }
-    .badge-50  { background: #122512; color: #4caf50; }
-    .badge-70  { background: #1a2510; color: #8bc34a; }
-    .badge-100 { background: #2a1800; color: #ff9800; }
-
-    .margin-desc { font-size: 0.78rem; color: #555; }
-    .margin-price { font-size: 1.08rem; font-weight: 700; color: #f0f0f0; }
+    .mkt-row:last-child { border-bottom: none; }
+    .mkt-left { display: flex; flex-direction: column; gap: 2px; }
+    .mkt-name { font-size: 0.88rem; font-weight: 700; color: #e8e8e8; }
+    .mkt-fee  { font-size: 0.7rem; color: #555; }
+    .mkt-price { font-size: 1.08rem; font-weight: 700; color: #f0f0f0; }
 
     footer {
       text-align: center;
@@ -441,28 +461,59 @@
       </div>
     </div>
 
-    <div class="section-label" style="margin-top:4px;">Preço de venda</div>
-    <div class="margin-rows">
-      <div class="margin-row">
-        <div class="margin-left">
-          <span class="badge badge-50">+50%</span>
-          <span class="margin-desc">lucro</span>
-        </div>
-        <span class="margin-price" id="price-50">R$ 0,00</span>
+    <div class="section-label" style="margin-top:4px;">Qual sua margem desejada?</div>
+    <div class="margin-grid">
+      <button class="margin-btn" onclick="selectMargin(this, 0.15)">15%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.20)">20%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.25)">25%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.30)">30%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.35)">35%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.40)">40%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.45)">45%</button>
+      <button class="margin-btn" onclick="selectMargin(this, 0.50)">50%</button>
+      <button class="margin-btn" onclick="selectMargin(this, -1)">Outra</button>
+    </div>
+
+    <div class="custom-margin-wrap" id="custom-margin-wrap" style="display:none;">
+      <label>Margem desejada (%)</label>
+      <div class="input-wrap">
+        <input type="number" id="custom-margin" placeholder="0" min="1" max="99" step="1" oninput="calcMargins()">
+        <span class="input-suffix">%</span>
       </div>
-      <div class="margin-row">
-        <div class="margin-left">
-          <span class="badge badge-70">+70%</span>
-          <span class="margin-desc">lucro</span>
+    </div>
+
+    <div id="mkt-placeholder" class="mkt-placeholder">
+      Selecione uma margem acima para ver os valores sugeridos para cada marketplace.
+    </div>
+
+    <div class="mkt-rows" id="mkt-rows" style="display:none;">
+      <div class="mkt-row">
+        <div class="mkt-left">
+          <span class="mkt-name">Venda Direta</span>
+          <span class="mkt-fee">Sem taxa de plataforma</span>
         </div>
-        <span class="margin-price" id="price-70">R$ 0,00</span>
+        <span class="mkt-price" id="mkt-direto">R$ 0,00</span>
       </div>
-      <div class="margin-row">
-        <div class="margin-left">
-          <span class="badge badge-100">+100%</span>
-          <span class="margin-desc">lucro</span>
+      <div class="mkt-row">
+        <div class="mkt-left">
+          <span class="mkt-name">Shopee</span>
+          <span class="mkt-fee">Taxa ~20%</span>
         </div>
-        <span class="margin-price" id="price-100">R$ 0,00</span>
+        <span class="mkt-price" id="mkt-shopee">R$ 0,00</span>
+      </div>
+      <div class="mkt-row">
+        <div class="mkt-left">
+          <span class="mkt-name">Mercado Livre</span>
+          <span class="mkt-fee">Taxa ~12%</span>
+        </div>
+        <span class="mkt-price" id="mkt-ml">R$ 0,00</span>
+      </div>
+      <div class="mkt-row">
+        <div class="mkt-left">
+          <span class="mkt-name">Etsy</span>
+          <span class="mkt-fee">Taxa ~10%</span>
+        </div>
+        <span class="mkt-price" id="mkt-etsy">R$ 0,00</span>
       </div>
     </div>
   </div>
@@ -477,6 +528,8 @@
   let watts = 95;
   let pricePerKg = 110;
   let customFil = false;
+  let selectedMargin = null;
+  let customMarginMode = false;
 
   function selectPrinter(btn, w) {
     document.querySelectorAll('.printer-grid .sel-btn').forEach(b => b.classList.remove('active'));
@@ -528,9 +581,43 @@
     document.getElementById('bd-total').textContent     = fmt(total);
     document.getElementById('total-cost').textContent   = fmt(total);
 
-    document.getElementById('price-50').textContent  = fmt(total * 1.5);
-    document.getElementById('price-70').textContent  = fmt(total * 1.7);
-    document.getElementById('price-100').textContent = fmt(total * 2.0);
+    calcMargins();
+  }
+
+  function selectMargin(btn, val) {
+    document.querySelectorAll('.margin-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    customMarginMode = val === -1;
+    document.getElementById('custom-margin-wrap').style.display = customMarginMode ? 'block' : 'none';
+    if (!customMarginMode) selectedMargin = val;
+    calcMargins();
+  }
+
+  function calcMargins() {
+    if (customMarginMode) {
+      const v = parseFloat(document.getElementById('custom-margin').value);
+      selectedMargin = (v > 0 && v < 100) ? v / 100 : null;
+    }
+
+    if (selectedMargin === null) return;
+
+    const total = parseFloat(
+      document.getElementById('bd-total').textContent
+        .replace('R$ ', '').replace(/\./g, '').replace(',', '.')
+    ) || 0;
+
+    document.getElementById('mkt-placeholder').style.display = 'none';
+    document.getElementById('mkt-rows').style.display = 'block';
+
+    const price = (cost, fee) => {
+      const denom = 1 - selectedMargin - fee;
+      return denom > 0 ? fmt(cost / denom) : '—';
+    };
+
+    document.getElementById('mkt-direto').textContent = price(total, 0);
+    document.getElementById('mkt-shopee').textContent = price(total, 0.20);
+    document.getElementById('mkt-ml').textContent     = price(total, 0.12);
+    document.getElementById('mkt-etsy').textContent   = price(total, 0.10);
   }
 
   calc();
